@@ -97,8 +97,12 @@ struct ContentView: View {
                         HeartRateChartView(data: viewModel.chartData)
                             .frame(height: 200)
                             .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color(.systemGray6))
+                            )
+                            .padding(.vertical, 16)
+                            .padding(.horizontal)
                     }
                 }
                 
@@ -144,8 +148,12 @@ struct ContentView: View {
                 if !viewModel.chartData.isEmpty {
                     HeartRateChartView(data: viewModel.chartData)
                         .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color(.systemGray6))
+                        )
+                        .padding(.vertical, 16)
+                        .padding(.horizontal)
                         .frame(maxWidth: .infinity)
                 }
             }
