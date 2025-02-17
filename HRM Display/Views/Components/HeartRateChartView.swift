@@ -53,8 +53,8 @@ struct HeartRateChartView: View {
             }
         }
         .chartForegroundStyleScale([
-            "Instantaneous": Color.red,
-            "60s Average": Color.blue
+            "Instantaneous": Color.gray.opacity(0.1),
+            "60s Average": Color.red
         ])
         .chartYScale(domain: yAxisBounds.min...yAxisBounds.max)
         .chartXScale(domain: xAxisBounds.min...xAxisBounds.max)
