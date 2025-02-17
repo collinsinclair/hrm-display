@@ -25,6 +25,15 @@ struct HeartRateChartView: View {
         return (minBound, maxBound)
     }
     
+    private var xAxisBounds: (min: Date, max: Date) {
+        guard !data.isEmpty else { return (Date(), Date()) }
+        
+        let firstTimestamp = data[0].timestamp
+        let now = Date()
+        
+        return (firstTimestamp, now)
+    }
+    
     var body: some View {
         Chart {
             ForEach(data) { point in
@@ -48,6 +57,7 @@ struct HeartRateChartView: View {
             "60s Average": Color.blue
         ])
         .chartYScale(domain: yAxisBounds.min...yAxisBounds.max)
+        .chartXScale(domain: xAxisBounds.min...xAxisBounds.max)
         .chartXAxis {
             AxisMarks(values: .stride(by: 30)) { value in
                 if let date = value.as(Date.self) {

@@ -5,8 +5,8 @@ class HeartRateViewModel: ObservableObject {
     private let bluetoothService: BluetoothService
     private var cancellables = Set<AnyCancellable>()
     
-    // Maximum number of data points to store
-    private let maxDataPoints = 100
+    // Keep track of session start time
+    private var sessionStartTime: Date?
     
     // Store timestamps with heart rate values
     private struct HeartRateMeasurement {
@@ -73,6 +73,7 @@ class HeartRateViewModel: ObservableObject {
         chartData.removeAll()
         currentHeartRate = 0
         averageHeartRate = 0
+        sessionStartTime = nil
     }
     
     private func updateHeartRate(_ heartRate: Int) {
@@ -138,16 +139,17 @@ class HeartRateViewModel: ObservableObject {
         // Only add valid heart rate measurements
         guard instantaneous > 0 && average > 0 else { return }
         
+        let now = Date()
+        // Set session start time if this is the first data point
+        if sessionStartTime == nil {
+            sessionStartTime = now
+        }
+        
         let point = HeartRateDataPoint(
-            timestamp: Date(),
+            timestamp: now,
             instantaneous: instantaneous,
             average: average
         )
         chartData.append(point)
-        
-        // Remove oldest points if we exceed maxDataPoints
-        if chartData.count > maxDataPoints {
-            chartData.removeFirst(chartData.count - maxDataPoints)
-        }
     }
 }
