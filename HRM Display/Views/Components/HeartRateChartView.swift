@@ -18,9 +18,9 @@ struct HeartRateChartView: View {
         let minValue = Double(allValues.min() ?? 60)
         let maxValue = Double(allValues.max() ?? 100)
         
-        // Calculate bounds with 10% padding
-        let minBound = Int((minValue * 0.9).rounded(.down))
-        let maxBound = Int((maxValue * 1.1).rounded(.up))
+        // Calculate bounds with 5% padding
+        let minBound = Int((minValue * 0.95).rounded(.down))
+        let maxBound = Int((maxValue * 1.05).rounded(.up))
         
         return (minBound, maxBound)
     }
