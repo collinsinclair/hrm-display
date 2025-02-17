@@ -16,6 +16,7 @@ class BluetoothService: NSObject, ObservableObject {
     
     @Published var isScanning = false
     @Published var heartRate: Int = 0
+    @Published var connectedDeviceName: String = "Not Connected"
     
     override init() {
         super.init()
@@ -34,6 +35,7 @@ class BluetoothService: NSObject, ObservableObject {
         guard let centralManager = centralManager else { return }
         isScanning = false
         centralManager.stopScan()
+        connectedDeviceName = "Not Connected"
     }
 }
 
@@ -43,6 +45,7 @@ extension BluetoothService: CBCentralManagerDelegate {
             print("Bluetooth is powered on")
         } else {
             print("Bluetooth is not available: \(central.state.rawValue)")
+            connectedDeviceName = "Bluetooth Not Available"
         }
     }
     
@@ -50,6 +53,7 @@ extension BluetoothService: CBCentralManagerDelegate {
                        advertisementData: [String: Any], rssi RSSI: NSNumber) {
         heartRatePeripheral = peripheral
         heartRatePeripheral?.delegate = self
+        connectedDeviceName = peripheral.name ?? "Unknown Device"
         central.connect(peripheral, options: nil)
         central.stopScan()
         isScanning = false
@@ -57,6 +61,11 @@ extension BluetoothService: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.discoverServices([heartRateServiceCBUUID])
+    }
+    
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        connectedDeviceName = "Not Connected"
+        heartRatePeripheral = nil
     }
 }
 

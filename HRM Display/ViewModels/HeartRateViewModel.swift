@@ -16,6 +16,7 @@ class HeartRateViewModel: ObservableObject {
     @Published var currentHeartRate: Int = 0
     @Published var averageHeartRate: Int = 0
     @Published var isScanning: Bool = false
+    @Published var deviceName: String = "Not Connected"
     
     init(bluetoothService: BluetoothService = BluetoothService()) {
         self.bluetoothService = bluetoothService
@@ -30,6 +31,10 @@ class HeartRateViewModel: ObservableObject {
         // Subscribe to scanning status
         bluetoothService.$isScanning
             .assign(to: &$isScanning)
+            
+        // Subscribe to device name updates
+        bluetoothService.$connectedDeviceName
+            .assign(to: &$deviceName)
     }
     
     func startScanning() {

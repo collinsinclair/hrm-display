@@ -16,6 +16,18 @@ struct ContentView: View {
                 .font(.title)
                 .fontWeight(.bold)
             
+            HStack {
+                Image(systemName: "beats.headphones")
+                    .foregroundColor(.secondary)
+                Text(viewModel.deviceName)
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+            
             VStack(spacing: 20) {
                 HeartRateDisplayView(
                     title: "Current BPM",
