@@ -42,7 +42,8 @@ struct ContentView: View {
             Text("Select Device")
                 .font(.headline)
                 .foregroundColor(.white)
-                .frame(width: 120, height: 40)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
                 .background(Color.blue)
                 .cornerRadius(8)
         }
@@ -55,7 +56,8 @@ struct ContentView: View {
             Text("Disconnect")
                 .font(.headline)
                 .foregroundColor(.white)
-                .frame(width: 120, height: 40)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
                 .background(Color.red)
                 .cornerRadius(8)
         }
@@ -69,7 +71,7 @@ struct ContentView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal)
         .padding(.vertical, 6)
         .background(Color(.systemGray6))
         .cornerRadius(8)
@@ -79,7 +81,6 @@ struct ContentView: View {
         ScrollView {
             VStack(spacing: 20) {
                 deviceStatus
-                    .padding(.top)
                 
                 VStack(spacing: 20) {
                     HeartRateDisplayView(
@@ -112,59 +113,47 @@ struct ContentView: View {
     }
     
     var landscapeLayout: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                // Fixed-height top section for controls
-                HStack(alignment: .top, spacing: 16) {
-                    deviceStatus
-                        .padding(.top, 16)
-                    
-                    Spacer()
-                    
-                    if viewModel.deviceName == "Not Connected" {
-                        connectButton
-                            .padding(.top, 16)
-                    } else {
-                        disconnectButton
-                            .padding(.top, 16)
-                    }
-                }
-                .padding(.horizontal)
-                .frame(height: 60)
-                
-                // BPM displays
-                HStack(spacing: 20) {
-                    HeartRateDisplayView(
-                        title: "Current BPM",
-                        value: viewModel.currentHeartRate
-                    )
-                    .frame(width: geometry.size.width * 0.25)
-                    
-                    HeartRateDisplayView(
-                        title: "60s Average",
-                        value: viewModel.averageHeartRate
-                    )
-                    .frame(width: geometry.size.width * 0.25)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 8)
-                
-                // Chart takes remaining space
-                if !viewModel.chartData.isEmpty {
-                    HeartRateChartView(data: viewModel.chartData)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .padding([.horizontal, .bottom])
-                        .frame(
-                            maxWidth: .infinity,
-                            maxHeight: .infinity
-                        )
+        VStack(spacing: 16) {
+            // Top controls
+            HStack {
+                deviceStatus
+                Spacer()
+                if viewModel.deviceName == "Not Connected" {
+                    connectButton
+                } else {
+                    disconnectButton
                 }
             }
+            .padding(.horizontal)
+            
+            // BPM displays
+            HStack {
+                HeartRateDisplayView(
+                    title: "Current BPM",
+                    value: viewModel.currentHeartRate
+                )
+                
+                HeartRateDisplayView(
+                    title: "60s Average",
+                    value: viewModel.averageHeartRate
+                )
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            // Chart
+            if !viewModel.chartData.isEmpty {
+                HeartRateChartView(data: viewModel.chartData)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+            }
+            
+            Spacer()
         }
+        .padding(.top)
     }
     
     var body: some View {
