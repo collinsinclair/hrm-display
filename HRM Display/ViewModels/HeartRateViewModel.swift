@@ -9,7 +9,13 @@ import Combine
 class HeartRateViewModel: ObservableObject {
     private let bluetoothService: BluetoothService
     private var cancellables = Set<AnyCancellable>()
-    private var heartRateHistory: [Int] = []
+    
+    // Store timestamps with heart rate values
+    private struct HeartRateMeasurement {
+        let timestamp: Date
+        let value: Int
+    }
+    private var heartRateHistory: [HeartRateMeasurement] = []
     
     @Published var currentHeartRate: Int = 0
     @Published var averageHeartRate: Int = 0
@@ -17,6 +23,9 @@ class HeartRateViewModel: ObservableObject {
     @Published var deviceName: String = "Not Connected"
     @Published var discoveredDevices: [DiscoveredDevice] = []
     @Published var showDeviceSheet = false
+    
+    // Configuration
+    private let averageWindowSeconds: TimeInterval = 60
     
     init(bluetoothService: BluetoothService = BluetoothService()) {
         self.bluetoothService = bluetoothService
@@ -58,18 +67,64 @@ class HeartRateViewModel: ObservableObject {
     
     func disconnect() {
         bluetoothService.disconnect()
+        // Clear history when disconnecting
+        heartRateHistory.removeAll()
+        averageHeartRate = 0
     }
     
     private func updateHeartRate(_ heartRate: Int) {
         currentHeartRate = heartRate
-        heartRateHistory.append(heartRate)
         
-        // Keep only last 30 seconds of data
-        if heartRateHistory.count > 30 {
-            heartRateHistory.removeFirst()
+        // Add new measurement with timestamp
+        let measurement = HeartRateMeasurement(timestamp: Date(), value: heartRate)
+        heartRateHistory.append(measurement)
+        
+        // Sort measurements by timestamp (should already be sorted, but being defensive)
+        let sortedMeasurements = heartRateHistory.sorted { $0.timestamp < $1.timestamp }
+        
+        // Calculate time span of our data
+        guard let firstMeasurement = sortedMeasurements.first else {
+            averageHeartRate = currentHeartRate
+            return
         }
         
-        // Calculate rolling average
-        averageHeartRate = Int(Double(heartRateHistory.reduce(0, +)) / Double(heartRateHistory.count))
+        let timeSpan = Date().timeIntervalSince(firstMeasurement.timestamp)
+        
+        if timeSpan < averageWindowSeconds {
+            // Less than 30 seconds of data - use simple arithmetic mean
+            let sum = sortedMeasurements.reduce(0) { $0 + $1.value }
+            averageHeartRate = Int(Double(sum) / Double(sortedMeasurements.count))
+        } else {
+            // We have at least 30 seconds of data - use rolling time-weighted average
+            let cutoffTime = Date().addingTimeInterval(-averageWindowSeconds)
+            
+            // Remove measurements older than the window
+            heartRateHistory.removeAll { $0.timestamp < cutoffTime }
+            
+            // Recalculate sorted measurements after removal
+            let windowedMeasurements = heartRateHistory.sorted { $0.timestamp < $1.timestamp }
+            
+            var weightedSum = 0.0
+            var totalTime = 0.0
+            
+            // Calculate time-weighted average
+            for i in 1..<windowedMeasurements.count {
+                let previousMeasurement = windowedMeasurements[i-1]
+                let currentMeasurement = windowedMeasurements[i]
+                
+                let timeInterval = currentMeasurement.timestamp.timeIntervalSince(previousMeasurement.timestamp)
+                weightedSum += Double(previousMeasurement.value) * timeInterval
+                totalTime += timeInterval
+            }
+            
+            // Add the most recent measurement's contribution
+            if let lastMeasurement = windowedMeasurements.last {
+                let timeInterval = Date().timeIntervalSince(lastMeasurement.timestamp)
+                weightedSum += Double(lastMeasurement.value) * timeInterval
+                totalTime += timeInterval
+            }
+            
+            averageHeartRate = totalTime > 0 ? Int(weightedSum / totalTime) : currentHeartRate
+        }
     }
 }
