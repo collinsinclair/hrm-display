@@ -11,6 +11,20 @@ struct HeartRateDataPoint: Identifiable {
 struct HeartRateChartView: View {
     let data: [HeartRateDataPoint]
     
+    private var yAxisBounds: (min: Int, max: Int) {
+        guard !data.isEmpty else { return (60, 100) }  // Default range if no data
+        
+        let allValues = data.flatMap { [$0.instantaneous, $0.average] }
+        let minValue = Double(allValues.min() ?? 60)
+        let maxValue = Double(allValues.max() ?? 100)
+        
+        // Calculate bounds with 10% padding
+        let minBound = Int((minValue * 0.9).rounded(.down))
+        let maxBound = Int((maxValue * 1.1).rounded(.up))
+        
+        return (minBound, maxBound)
+    }
+    
     var body: some View {
         Chart {
             ForEach(data) { point in
@@ -33,7 +47,7 @@ struct HeartRateChartView: View {
             "Instantaneous": Color.red,
             "60s Average": Color.blue
         ])
-        .chartYScale(domain: 40...120)
+        .chartYScale(domain: yAxisBounds.min...yAxisBounds.max)
         .chartXAxis {
             AxisMarks(values: .stride(by: 30)) { value in
                 if let date = value.as(Date.self) {

@@ -32,7 +32,9 @@ class HeartRateViewModel: ObservableObject {
         // Subscribe to heart rate updates
         bluetoothService.$heartRate
             .sink { [weak self] heartRate in
-                self?.updateHeartRate(heartRate)
+                if let heartRate = heartRate {
+                    self?.updateHeartRate(heartRate)
+                }
             }
             .store(in: &cancellables)
         
@@ -69,6 +71,7 @@ class HeartRateViewModel: ObservableObject {
         // Clear history when disconnecting
         heartRateHistory.removeAll()
         chartData.removeAll()
+        currentHeartRate = 0
         averageHeartRate = 0
     }
     
@@ -132,6 +135,9 @@ class HeartRateViewModel: ObservableObject {
     }
     
     private func addDataPoint(instantaneous: Int, average: Int) {
+        // Only add valid heart rate measurements
+        guard instantaneous > 0 && average > 0 else { return }
+        
         let point = HeartRateDataPoint(
             timestamp: Date(),
             instantaneous: instantaneous,

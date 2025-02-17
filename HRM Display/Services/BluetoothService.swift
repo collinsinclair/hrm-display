@@ -1,8 +1,3 @@
-//
-//  BluetoothService.swift
-//  HRM Display
-//
-
 import CoreBluetooth
 import Combine
 
@@ -19,7 +14,7 @@ class BluetoothService: NSObject, ObservableObject {
     private let heartRateMeasurementCharacteristicCBUUID = CBUUID(string: "0x2A37")
     
     @Published var isScanning = false
-    @Published var heartRate: Int = 0
+    @Published var heartRate: Int? = nil
     @Published var connectedDeviceName: String = "Not Connected"
     @Published var discoveredDevices: [DiscoveredDevice] = []
     
@@ -58,7 +53,7 @@ class BluetoothService: NSObject, ObservableObject {
         centralManager.cancelPeripheralConnection(peripheral)
         heartRatePeripheral = nil
         connectedDeviceName = "Not Connected"
-        heartRate = 0
+        heartRate = nil
     }
 }
 
@@ -90,7 +85,7 @@ extension BluetoothService: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         connectedDeviceName = "Not Connected"
         heartRatePeripheral = nil
-        heartRate = 0
+        heartRate = nil
     }
 }
 
@@ -124,6 +119,9 @@ extension BluetoothService: CBPeripheralDelegate {
             UInt16(data[1]) + (UInt16(data[2]) << 8) :
             UInt16(data[1])
         
-        self.heartRate = Int(heartRate)
+        // Only publish valid heart rates (typically between 30 and 220 bpm)
+        if heartRate >= 30 && heartRate <= 220 {
+            self.heartRate = Int(heartRate)
+        }
     }
 }
