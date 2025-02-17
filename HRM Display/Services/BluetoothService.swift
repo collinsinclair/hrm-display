@@ -2,11 +2,15 @@
 //  BluetoothService.swift
 //  HRM Display
 //
-//  Created by Collin Sinclair on 2/17/25.
-//
 
 import CoreBluetooth
 import Combine
+
+struct DiscoveredDevice: Identifiable {
+    let id: UUID
+    let peripheral: CBPeripheral
+    let name: String
+}
 
 class BluetoothService: NSObject, ObservableObject {
     private var centralManager: CBCentralManager?
@@ -17,6 +21,7 @@ class BluetoothService: NSObject, ObservableObject {
     @Published var isScanning = false
     @Published var heartRate: Int = 0
     @Published var connectedDeviceName: String = "Not Connected"
+    @Published var discoveredDevices: [DiscoveredDevice] = []
     
     override init() {
         super.init()
@@ -27,6 +32,7 @@ class BluetoothService: NSObject, ObservableObject {
         guard let centralManager = centralManager,
               centralManager.state == .poweredOn else { return }
         
+        discoveredDevices.removeAll()
         isScanning = true
         centralManager.scanForPeripherals(withServices: [heartRateServiceCBUUID])
     }
@@ -35,7 +41,24 @@ class BluetoothService: NSObject, ObservableObject {
         guard let centralManager = centralManager else { return }
         isScanning = false
         centralManager.stopScan()
+    }
+    
+    func connectTo(_ device: DiscoveredDevice) {
+        guard let centralManager = centralManager else { return }
+        heartRatePeripheral = device.peripheral
+        heartRatePeripheral?.delegate = self
+        centralManager.connect(device.peripheral, options: nil)
+        connectedDeviceName = device.name
+        stopScanning()
+    }
+    
+    func disconnect() {
+        guard let centralManager = centralManager,
+              let peripheral = heartRatePeripheral else { return }
+        centralManager.cancelPeripheralConnection(peripheral)
+        heartRatePeripheral = nil
         connectedDeviceName = "Not Connected"
+        heartRate = 0
     }
 }
 
@@ -51,12 +74,13 @@ extension BluetoothService: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
                        advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        heartRatePeripheral = peripheral
-        heartRatePeripheral?.delegate = self
-        connectedDeviceName = peripheral.name ?? "Unknown Device"
-        central.connect(peripheral, options: nil)
-        central.stopScan()
-        isScanning = false
+        let name = peripheral.name ?? "Unknown Device"
+        let device = DiscoveredDevice(id: peripheral.identifier, peripheral: peripheral, name: name)
+        
+        // Only add if not already in the list
+        if !discoveredDevices.contains(where: { $0.id == device.id }) {
+            discoveredDevices.append(device)
+        }
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -66,6 +90,7 @@ extension BluetoothService: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         connectedDeviceName = "Not Connected"
         heartRatePeripheral = nil
+        heartRate = 0
     }
 }
 

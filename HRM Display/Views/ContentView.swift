@@ -2,10 +2,40 @@
 //  ContentView.swift
 //  HRM Display
 //
-//  Created by Collin Sinclair on 2/17/25.
-//
 
 import SwiftUI
+
+struct DeviceSelectionSheet: View {
+    @ObservedObject var viewModel: HeartRateViewModel
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        NavigationView {
+            List(viewModel.discoveredDevices) { device in
+                Button(action: {
+                    viewModel.connectTo(device)
+                    dismiss()
+                }) {
+                    HStack {
+                        Text(device.name)
+                        Spacer()
+                        Image(systemName: "beats.headphones")
+                            .foregroundColor(.blue)
+                    }
+                }
+            }
+            .navigationTitle("Available Devices")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Cancel") {
+                        viewModel.stopScanning()
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
 
 struct ContentView: View {
     @StateObject private var viewModel = HeartRateViewModel()
@@ -40,22 +70,34 @@ struct ContentView: View {
                 )
             }
             
-            Button(action: {
-                if viewModel.isScanning {
-                    viewModel.stopScanning()
-                } else {
+            if viewModel.deviceName == "Not Connected" {
+                Button(action: {
                     viewModel.startScanning()
+                }) {
+                    Text("Select Device")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 50)
+                        .background(Color.blue)
+                        .cornerRadius(10)
                 }
-            }) {
-                Text(viewModel.isScanning ? "Stop Scanning" : "Start Scanning")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(width: 200, height: 50)
-                    .background(viewModel.isScanning ? Color.red : Color.blue)
-                    .cornerRadius(10)
+            } else {
+                Button(action: {
+                    viewModel.disconnect()
+                }) {
+                    Text("Disconnect")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 50)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                }
             }
         }
         .padding()
+        .sheet(isPresented: $viewModel.showDeviceSheet) {
+            DeviceSelectionSheet(viewModel: viewModel)
+        }
     }
 }
 

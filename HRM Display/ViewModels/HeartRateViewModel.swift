@@ -2,8 +2,6 @@
 //  HeartRateViewModel.swift
 //  HRM Display
 //
-//  Created by Collin Sinclair on 2/17/25.
-//
 
 import Foundation
 import Combine
@@ -17,6 +15,8 @@ class HeartRateViewModel: ObservableObject {
     @Published var averageHeartRate: Int = 0
     @Published var isScanning: Bool = false
     @Published var deviceName: String = "Not Connected"
+    @Published var discoveredDevices: [DiscoveredDevice] = []
+    @Published var showDeviceSheet = false
     
     init(bluetoothService: BluetoothService = BluetoothService()) {
         self.bluetoothService = bluetoothService
@@ -35,21 +35,36 @@ class HeartRateViewModel: ObservableObject {
         // Subscribe to device name updates
         bluetoothService.$connectedDeviceName
             .assign(to: &$deviceName)
+            
+        // Subscribe to discovered devices
+        bluetoothService.$discoveredDevices
+            .assign(to: &$discoveredDevices)
     }
     
     func startScanning() {
         bluetoothService.startScanning()
+        showDeviceSheet = true
     }
     
     func stopScanning() {
         bluetoothService.stopScanning()
+        showDeviceSheet = false
+    }
+    
+    func connectTo(_ device: DiscoveredDevice) {
+        bluetoothService.connectTo(device)
+        showDeviceSheet = false
+    }
+    
+    func disconnect() {
+        bluetoothService.disconnect()
     }
     
     private func updateHeartRate(_ heartRate: Int) {
         currentHeartRate = heartRate
         heartRateHistory.append(heartRate)
         
-        // Keep only last 30 seconds of data (assuming 1 reading per second)
+        // Keep only last 30 seconds of data
         if heartRateHistory.count > 30 {
             heartRateHistory.removeFirst()
         }
