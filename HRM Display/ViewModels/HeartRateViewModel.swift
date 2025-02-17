@@ -1,14 +1,12 @@
-//
-//  HeartRateViewModel.swift
-//  HRM Display
-//
-
 import Foundation
 import Combine
 
 class HeartRateViewModel: ObservableObject {
     private let bluetoothService: BluetoothService
     private var cancellables = Set<AnyCancellable>()
+    
+    // Maximum number of data points to store
+    private let maxDataPoints = 100
     
     // Store timestamps with heart rate values
     private struct HeartRateMeasurement {
@@ -23,6 +21,7 @@ class HeartRateViewModel: ObservableObject {
     @Published var deviceName: String = "Not Connected"
     @Published var discoveredDevices: [DiscoveredDevice] = []
     @Published var showDeviceSheet = false
+    @Published private(set) var chartData: [HeartRateDataPoint] = []
     
     // Configuration
     private let averageWindowSeconds: TimeInterval = 60
@@ -69,6 +68,7 @@ class HeartRateViewModel: ObservableObject {
         bluetoothService.disconnect()
         // Clear history when disconnecting
         heartRateHistory.removeAll()
+        chartData.removeAll()
         averageHeartRate = 0
     }
     
@@ -85,17 +85,18 @@ class HeartRateViewModel: ObservableObject {
         // Calculate time span of our data
         guard let firstMeasurement = sortedMeasurements.first else {
             averageHeartRate = currentHeartRate
+            addDataPoint(instantaneous: heartRate, average: heartRate)
             return
         }
         
         let timeSpan = Date().timeIntervalSince(firstMeasurement.timestamp)
         
         if timeSpan < averageWindowSeconds {
-            // Less than 30 seconds of data - use simple arithmetic mean
+            // Less than 60 seconds of data - use simple arithmetic mean
             let sum = sortedMeasurements.reduce(0) { $0 + $1.value }
             averageHeartRate = Int(Double(sum) / Double(sortedMeasurements.count))
         } else {
-            // We have at least 30 seconds of data - use rolling time-weighted average
+            // We have at least 60 seconds of data - use rolling time-weighted average
             let cutoffTime = Date().addingTimeInterval(-averageWindowSeconds)
             
             // Remove measurements older than the window
@@ -125,6 +126,22 @@ class HeartRateViewModel: ObservableObject {
             }
             
             averageHeartRate = totalTime > 0 ? Int(weightedSum / totalTime) : currentHeartRate
+        }
+        
+        addDataPoint(instantaneous: heartRate, average: averageHeartRate)
+    }
+    
+    private func addDataPoint(instantaneous: Int, average: Int) {
+        let point = HeartRateDataPoint(
+            timestamp: Date(),
+            instantaneous: instantaneous,
+            average: average
+        )
+        chartData.append(point)
+        
+        // Remove oldest points if we exceed maxDataPoints
+        if chartData.count > maxDataPoints {
+            chartData.removeFirst(chartData.count - maxDataPoints)
         }
     }
 }

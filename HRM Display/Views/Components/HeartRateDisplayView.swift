@@ -39,3 +39,10 @@ struct HeartRateDisplayView: View {
         }
     }
 }
+
+#Preview {
+    HeartRateDisplayView(
+        title: "Current BPM",
+        value: 72
+    )
+}

@@ -76,74 +76,91 @@ struct ContentView: View {
     }
     
     var portraitLayout: some View {
-        VStack(spacing: 40) {
-            Text("Heart Rate Monitor")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            deviceStatus
-            
+        ScrollView {
             VStack(spacing: 20) {
-                HeartRateDisplayView(
-                    title: "Current BPM",
-                    value: viewModel.currentHeartRate
-                )
-                
-                HeartRateDisplayView(
-                    title: "60s Average",
-                    value: viewModel.averageHeartRate
-                )
-            }
-            
-            if viewModel.deviceName == "Not Connected" {
-                connectButton
-            } else {
-                disconnectButton
-            }
-        }
-    }
-    
-    var landscapeLayout: some View {
-        VStack(spacing: 0) {
-            // Top row - fixed height, anchored to top
-            HStack {
                 Text("Heart Rate Monitor")
                     .font(.title)
                     .fontWeight(.bold)
                 
-                Spacer()
+                deviceStatus
+                
+                VStack(spacing: 20) {
+                    HeartRateDisplayView(
+                        title: "Current BPM",
+                        value: viewModel.currentHeartRate
+                    )
+                    
+                    HeartRateDisplayView(
+                        title: "60s Average",
+                        value: viewModel.averageHeartRate
+                    )
+                    
+                    if !viewModel.chartData.isEmpty {
+                        HeartRateChartView(data: viewModel.chartData)
+                            .frame(height: 200)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
+                    }
+                }
                 
                 if viewModel.deviceName == "Not Connected" {
                     connectButton
                 } else {
                     disconnectButton
                 }
-                
-                Spacer()
-                
-                deviceStatus
             }
-            .padding(.bottom, 20)
-            
-            // Bottom row with heart rate displays - expands to fill remaining space
-            HStack(spacing: 20) {
-                HeartRateDisplayView(
-                    title: "Current BPM",
-                    value: viewModel.currentHeartRate,
-                    expandContent: true
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                HeartRateDisplayView(
-                    title: "60s Average",
-                    value: viewModel.averageHeartRate,
-                    expandContent: true
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.horizontal, 20)
+            .padding()
         }
+    }
+    
+    var landscapeLayout: some View {
+        HStack(spacing: 20) {
+            // Left side - displays
+            VStack {
+                HStack {
+                    Text("Heart Rate Monitor")
+                        .font(.title)
+                        .fontWeight(.bold)
+                    
+                    Spacer()
+                    
+                    deviceStatus
+                }
+                
+                HStack(spacing: 20) {
+                    HeartRateDisplayView(
+                        title: "Current BPM",
+                        value: viewModel.currentHeartRate,
+                        expandContent: true
+                    )
+                    
+                    HeartRateDisplayView(
+                        title: "60s Average",
+                        value: viewModel.averageHeartRate,
+                        expandContent: true
+                    )
+                }
+                
+                if viewModel.deviceName == "Not Connected" {
+                    connectButton
+                } else {
+                    disconnectButton
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            
+            // Right side - chart
+            if !viewModel.chartData.isEmpty {
+                HeartRateChartView(data: viewModel.chartData)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .padding()
     }
     
     var body: some View {
@@ -155,8 +172,6 @@ struct ContentView: View {
                     portraitLayout
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .sheet(isPresented: $viewModel.showDeviceSheet) {
             DeviceSelectionSheet(viewModel: viewModel)
