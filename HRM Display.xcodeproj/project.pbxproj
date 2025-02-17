@@ -29,9 +29,22 @@
 		F70500DF2D639706004E2734 /* HRM DisplayUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "HRM DisplayUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F75F3B712D639E96001628F0 /* Exceptions for "HRM Display" folder in "HRM Display" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"HRM-Display-Info.plist",
+			);
+			target = F70500C42D639705004E2734 /* HRM Display */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F70500C72D639705004E2734 /* HRM Display */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F75F3B712D639E96001628F0 /* Exceptions for "HRM Display" folder in "HRM Display" target */,
+			);
 			path = "HRM Display";
 			sourceTree = "<group>";
 		};
@@ -399,6 +412,9 @@
 				DEVELOPMENT_TEAM = HTQGY7GCK4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "HRM-Display-Info.plist";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +444,9 @@
 				DEVELOPMENT_TEAM = HTQGY7GCK4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "HRM-Display-Info.plist";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
